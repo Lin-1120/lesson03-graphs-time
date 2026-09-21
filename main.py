@@ -113,7 +113,6 @@ else:
 st.divider()
 st.header("2. 일관객 합계가 가장 큰 영화 5편")
 
-# 영화별 기간 전체 일관객 합계 계산
 top5_movies = (
     df.groupby("영화명", as_index=False)["일관객"]
     .sum()
@@ -123,7 +122,6 @@ top5_movies = (
 
 top5_movie_names = top5_movies["영화명"].tolist()
 
-# 상위 5편의 날짜별 데이터만 추출
 top5_df = df[df["영화명"].isin(top5_movie_names)].copy()
 top5_df = top5_df.sort_values(["날짜", "영화명"])
 
@@ -158,10 +156,7 @@ fig2.update_layout(
     )
 )
 
-st.plotly_chart(
-    fig2,
-    use_container_width=True
-)
+st.plotly_chart(fig2, use_container_width=True)
 
 st.markdown(
     "**이 그래프로 알 수 있는 것:** "
@@ -175,21 +170,18 @@ st.markdown(
 st.divider()
 st.header("3. 날짜별 10위권 일관객 합계")
 
-# 날짜별로 10위권 영화의 일관객 합계 계산
 daily_total = (
     df.groupby("날짜", as_index=False)["일관객"]
     .sum()
     .sort_values("날짜")
 )
 
-# 일관객 합계가 가장 큰 3일 찾기
 top3_days = (
     daily_total
     .nlargest(3, "일관객")
     .sort_values("날짜")
 )
 
-# 영역 그래프
 fig3 = px.area(
     daily_total,
     x="날짜",
@@ -206,7 +198,6 @@ fig3.update_traces(
                   "10위권 일관객 합계: %{y:,}명<extra></extra>"
 )
 
-# 가장 큰 3일을 그래프 위에 표시
 annotations = []
 
 for _, row in top3_days.iterrows():
@@ -251,7 +242,6 @@ st.markdown(
 st.divider()
 st.header("4. 영화별 기간 전체 일관객 TOP 10")
 
-# 영화별 기간 전체 일관객 합계
 movie_summary = (
     df.groupby("영화명")
     .agg(
@@ -261,7 +251,6 @@ movie_summary = (
     .reset_index()
 )
 
-# 일관객 합계 기준 TOP 10
 top10_movies = (
     movie_summary
     .sort_values("일관객합계", ascending=False)
@@ -269,7 +258,6 @@ top10_movies = (
     .copy()
 )
 
-# 가로 막대그래프에서 위쪽에 1위가 오도록
 top10_movies = top10_movies.sort_values("일관객합계", ascending=True)
 
 fig4 = px.bar(
@@ -310,15 +298,117 @@ st.markdown(
 
 
 # --------------------------------------------------
+# 그래프 5. 월 × 요일별 일관객 합계 히트맵
+# --------------------------------------------------
+st.divider()
+st.header("5. 월 × 요일별 일관객 합계")
+
+# 요일 이름
+weekday_names = [
+    "월요일",
+    "화요일",
+    "수요일",
+    "목요일",
+    "금요일",
+    "토요일",
+    "일요일"
+]
+
+# 날짜에서 월과 요일 추출
+heatmap_df = df.copy()
+
+heatmap_df["월"] = heatmap_df["날짜"].dt.month
+heatmap_df["요일번호"] = heatmap_df["날짜"].dt.weekday
+heatmap_df["요일"] = heatmap_df["요일번호"].map(
+    dict(enumerate(weekday_names))
+)
+
+# 월 × 요일별 일관객 합계
+monthly_weekday = (
+    heatmap_df
+    .groupby(["월", "요일번호", "요일"], as_index=False)["일관객"]
+    .sum()
+)
+
+# 월 × 요일 형태로 변환
+heatmap_pivot = (
+    monthly_weekday
+    .pivot(
+        index="월",
+        columns="요일번호",
+        values="일관객"
+    )
+)
+
+# 월요일 → 일요일 순서로 정렬
+heatmap_pivot = heatmap_pivot.reindex(
+    columns=range(7)
+)
+
+# 숫자 요일을 한글 요일로 변경
+heatmap_pivot.columns = weekday_names
+
+# 히트맵용 데이터프레임
+heatmap_plot_df = heatmap_pivot.reset_index()
+
+# Plotly용 긴 형태로 변환
+heatmap_long = heatmap_plot_df.melt(
+    id_vars="월",
+    value_vars=weekday_names,
+    var_name="요일",
+    value_name="일관객"
+)
+
+fig5 = px.density_heatmap(
+    heatmap_long,
+    x="요일",
+    y="월",
+    z="일관객",
+    category_orders={
+        "요일": weekday_names,
+        "월": list(range(1, 13))
+    },
+    labels={
+        "요일": "요일",
+        "월": "월",
+        "일관객": "일관객 합계"
+    },
+    title="월 × 요일별 박스오피스 10위권 일관객 합계",
+    text_auto=".2s"
+)
+
+fig5.update_traces(
+    hovertemplate="월: %{y}월<br>"
+                  "요일: %{x}<br>"
+                  "일관객 합계: %{z:,}명<extra></extra>"
+)
+
+fig5.update_layout(
+    xaxis_title="요일",
+    yaxis_title="월",
+    yaxis=dict(
+        autorange="reversed"
+    )
+)
+
+st.plotly_chart(fig5, use_container_width=True)
+
+st.markdown(
+    "**이 그래프로 알 수 있는 것:** "
+    "어떤 월과 요일에 박스오피스 10위권의 일관객이 많이 모였는지 한눈에 비교할 수 있습니다."
+)
+
+
+# --------------------------------------------------
 # 앞으로 추가할 그래프 영역
 # --------------------------------------------------
 st.divider()
 
-st.header("5. 다음 그래프")
+st.header("6. 다음 그래프")
 st.info("앞으로 새로운 시간 관련 그래프가 이곳에 추가됩니다.")
 
 
 st.divider()
 
-st.header("6. 다음 그래프")
+st.header("7. 다음 그래프")
 st.info("앞으로 새로운 시간 관련 그래프가 이곳에 추가됩니다.")
