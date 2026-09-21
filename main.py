@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -51,7 +52,7 @@ def load_data():
 # 데이터 불러오기
 try:
     df = load_data()
-except Exception as e:
+except Exception:
     st.error("데이터를 불러오는 중 오류가 발생했습니다.")
     st.stop()
 
@@ -85,7 +86,8 @@ if movie_list:
     )
 
     fig.update_traces(
-        hovertemplate="날짜: %{x|%Y-%m-%d}<br>일관객: %{y:,}명<extra></extra>"
+        hovertemplate="날짜: %{x|%Y-%m-%d}<br>"
+                      "일관객: %{y:,}명<extra></extra>"
     )
 
     fig.update_layout(
@@ -106,15 +108,80 @@ else:
 
 
 # --------------------------------------------------
+# 그래프 2. 기간 전체 일관객 합계 상위 5편 비교
+# --------------------------------------------------
+st.divider()
+st.header("2. 일관객 합계가 가장 큰 영화 5편")
+
+# 영화별 기간 전체 일관객 합계 계산
+top5_movies = (
+    df.groupby("영화명", as_index=False)["일관객"]
+    .sum()
+    .sort_values("일관객", ascending=False)
+    .head(5)
+)
+
+# 상위 5편의 영화명만 가져오기
+top5_movie_names = top5_movies["영화명"].tolist()
+
+# 상위 5편의 날짜별 데이터만 추출
+top5_df = df[df["영화명"].isin(top5_movie_names)].copy()
+top5_df = top5_df.sort_values(["날짜", "영화명"])
+
+# 여러 영화를 한 그래프에 표시
+fig2 = px.line(
+    top5_df,
+    x="날짜",
+    y="일관객",
+    color="영화명",
+    markers=True,
+    labels={
+        "날짜": "날짜",
+        "일관객": "일관객 수",
+        "영화명": "영화"
+    },
+    title="기간 전체 일관객 합계 상위 5편의 날짜별 일관객 변화"
+)
+
+fig2.update_traces(
+    hovertemplate="날짜: %{x|%Y-%m-%d}<br>"
+                  "영화: %{fullData.name}<br>"
+                  "일관객: %{y:,}명<extra></extra>"
+)
+
+fig2.update_layout(
+    hovermode="x unified",
+    xaxis_title="날짜",
+    yaxis_title="일관객 수(명)",
+    legend_title="영화",
+    legend=dict(
+        itemclick="toggle",
+        itemdoubleclick="toggleothers"
+    )
+)
+
+st.plotly_chart(
+    fig2,
+    use_container_width=True
+)
+
+st.markdown(
+    "**이 그래프로 알 수 있는 것:** "
+    "이 기간 동안 일관객 합계가 가장 컸던 5편의 흥행 추이를 날짜별로 비교할 수 있습니다."
+)
+
+
+# --------------------------------------------------
 # 앞으로 추가할 그래프 영역
 # --------------------------------------------------
 st.divider()
 
-st.header("2. 다음 그래프")
+st.header("3. 다음 그래프")
 st.info("앞으로 새로운 시간 관련 그래프가 이곳에 추가됩니다.")
 
 
 st.divider()
 
-st.header("3. 다음 그래프")
+st.header("4. 다음 그래프")
 st.info("앞으로 새로운 시간 관련 그래프가 이곳에 추가됩니다.")
+```
