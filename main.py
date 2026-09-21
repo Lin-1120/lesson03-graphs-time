@@ -216,4 +216,109 @@ for _, row in top3_days.iterrows():
             y=row["일관객"],
             text=(
                 f"{row['날짜'].strftime('%Y-%m-%d')}"
-                f"<br>{row['일관객]()
+                f"<br>{row['일관객']:,}명"
+            ),
+            showarrow=True,
+            arrowhead=2,
+            ax=0,
+            ay=-50,
+            font=dict(size=12),
+            bgcolor="white",
+            bordercolor="gray",
+            borderwidth=1,
+            borderpad=4
+        )
+    )
+
+fig3.update_layout(
+    hovermode="x unified",
+    xaxis_title="날짜",
+    yaxis_title="10위권 일관객 합계(명)",
+    annotations=annotations
+)
+
+st.plotly_chart(fig3, use_container_width=True)
+
+st.markdown(
+    "**이 그래프로 알 수 있는 것:** "
+    "날짜에 따라 박스오피스 10위권 전체의 관객 규모가 어떻게 변했는지 알 수 있습니다."
+)
+
+
+# --------------------------------------------------
+# 그래프 4. 영화별 기간 전체 일관객 TOP 10
+# --------------------------------------------------
+st.divider()
+st.header("4. 영화별 기간 전체 일관객 TOP 10")
+
+# 영화별 기간 전체 일관객 합계
+movie_summary = (
+    df.groupby("영화명")
+    .agg(
+        일관객합계=("일관객", "sum"),
+        기록일수=("날짜", "nunique")
+    )
+    .reset_index()
+)
+
+# 일관객 합계 기준 TOP 10
+top10_movies = (
+    movie_summary
+    .sort_values("일관객합계", ascending=False)
+    .head(10)
+    .copy()
+)
+
+# 가로 막대그래프에서 위쪽에 1위가 오도록
+top10_movies = top10_movies.sort_values("일관객합계", ascending=True)
+
+fig4 = px.bar(
+    top10_movies,
+    x="일관객합계",
+    y="영화명",
+    orientation="h",
+    labels={
+        "일관객합계": "기간 전체 일관객",
+        "영화명": "영화"
+    },
+    title="기간 전체 일관객 TOP 10",
+    custom_data=["기록일수"]
+)
+
+fig4.update_traces(
+    hovertemplate="<b>%{y}</b><br>"
+                  "기간 전체 일관객: %{x:,}명<br>"
+                  "10위권에 든 날수: %{customdata[0]}일"
+                  "<extra></extra>"
+)
+
+fig4.update_layout(
+    xaxis_title="기간 전체 일관객 수(명)",
+    yaxis_title="영화",
+    yaxis=dict(
+        categoryorder="array",
+        categoryarray=top10_movies["영화명"].tolist()
+    )
+)
+
+st.plotly_chart(fig4, use_container_width=True)
+
+st.markdown(
+    "**이 그래프로 알 수 있는 것:** "
+    "이 기간 동안 10위권에 등장한 영화 중 전체 일관객이 많았던 영화와 10위권에 머문 날수를 함께 비교할 수 있습니다."
+)
+
+
+# --------------------------------------------------
+# 앞으로 추가할 그래프 영역
+# --------------------------------------------------
+st.divider()
+
+st.header("5. 다음 그래프")
+st.info("앞으로 새로운 시간 관련 그래프가 이곳에 추가됩니다.")
+
+
+st.divider()
+
+st.header("6. 다음 그래프")
+st.info("앞으로 새로운 시간 관련 그래프가 이곳에 추가됩니다.")
