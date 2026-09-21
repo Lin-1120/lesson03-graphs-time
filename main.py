@@ -201,7 +201,6 @@ fig3 = px.area(
     title="날짜별 박스오피스 10위권 일관객 합계"
 )
 
-# 전체 영역 그래프 스타일
 fig3.update_traces(
     hovertemplate="날짜: %{x|%Y-%m-%d}<br>"
                   "10위권 일관객 합계: %{y:,}명<extra></extra>"
@@ -217,50 +216,4 @@ for _, row in top3_days.iterrows():
             y=row["일관객"],
             text=(
                 f"{row['날짜'].strftime('%Y-%m-%d')}"
-                f"<br>{row['일관객']:,}명"
-            ),
-            showarrow=True,
-            arrowhead=2,
-            ax=0,
-            ay=-50,
-            font=dict(
-                size=12
-            ),
-            bgcolor="white",
-            bordercolor="gray",
-            borderwidth=1,
-            borderpad=4
-        )
-    )
-
-fig3.update_layout(
-    hovermode="x unified",
-    xaxis_title="날짜",
-    yaxis_title="10위권 일관객 합계(명)",
-    annotations=annotations
-)
-
-st.plotly_chart(
-    fig3,
-    use_container_width=True
-)
-
-st.markdown(
-    "**이 그래프로 알 수 있는 것:** "
-    "날짜에 따라 박스오피스 10위권 전체의 관객 규모가 어떻게 변했는지 알 수 있습니다."
-)
-
-
-# --------------------------------------------------
-# 앞으로 추가할 그래프 영역
-# --------------------------------------------------
-st.divider()
-
-st.header("4. 다음 그래프")
-st.info("앞으로 새로운 시간 관련 그래프가 이곳에 추가됩니다.")
-
-
-st.divider()
-
-st.header("5. 다음 그래프")
-st.info("앞으로 새로운 시간 관련 그래프가 이곳에 추가됩니다.")
+                f"<br>{row['일관객]()
