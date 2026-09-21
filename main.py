@@ -121,14 +121,12 @@ top5_movies = (
     .head(5)
 )
 
-# 상위 5편의 영화명만 가져오기
 top5_movie_names = top5_movies["영화명"].tolist()
 
 # 상위 5편의 날짜별 데이터만 추출
 top5_df = df[df["영화명"].isin(top5_movie_names)].copy()
 top5_df = top5_df.sort_values(["날짜", "영화명"])
 
-# 여러 영화를 한 그래프에 표시
 fig2 = px.line(
     top5_df,
     x="날짜",
@@ -172,16 +170,97 @@ st.markdown(
 
 
 # --------------------------------------------------
-# 앞으로 추가할 그래프 영역
+# 그래프 3. 날짜별 10위권 일관객 합계
 # --------------------------------------------------
 st.divider()
+st.header("3. 날짜별 10위권 일관객 합계")
 
-st.header("3. 다음 그래프")
-st.info("앞으로 새로운 시간 관련 그래프가 이곳에 추가됩니다.")
+# 날짜별로 10위권 영화의 일관객 합계 계산
+daily_total = (
+    df.groupby("날짜", as_index=False)["일관객"]
+    .sum()
+    .sort_values("날짜")
+)
+
+# 일관객 합계가 가장 큰 3일 찾기
+top3_days = (
+    daily_total
+    .nlargest(3, "일관객")
+    .sort_values("날짜")
+)
+
+# 영역 그래프
+fig3 = px.area(
+    daily_total,
+    x="날짜",
+    y="일관객",
+    labels={
+        "날짜": "날짜",
+        "일관객": "10위권 일관객 합계"
+    },
+    title="날짜별 박스오피스 10위권 일관객 합계"
+)
+
+# 전체 영역 그래프 스타일
+fig3.update_traces(
+    hovertemplate="날짜: %{x|%Y-%m-%d}<br>"
+                  "10위권 일관객 합계: %{y:,}명<extra></extra>"
+)
+
+# 가장 큰 3일을 그래프 위에 표시
+annotations = []
+
+for _, row in top3_days.iterrows():
+    annotations.append(
+        dict(
+            x=row["날짜"],
+            y=row["일관객"],
+            text=(
+                f"{row['날짜'].strftime('%Y-%m-%d')}"
+                f"<br>{row['일관객']:,}명"
+            ),
+            showarrow=True,
+            arrowhead=2,
+            ax=0,
+            ay=-50,
+            font=dict(
+                size=12
+            ),
+            bgcolor="white",
+            bordercolor="gray",
+            borderwidth=1,
+            borderpad=4
+        )
+    )
+
+fig3.update_layout(
+    hovermode="x unified",
+    xaxis_title="날짜",
+    yaxis_title="10위권 일관객 합계(명)",
+    annotations=annotations
+)
+
+st.plotly_chart(
+    fig3,
+    use_container_width=True
+)
+
+st.markdown(
+    "**이 그래프로 알 수 있는 것:** "
+    "날짜에 따라 박스오피스 10위권 전체의 관객 규모가 어떻게 변했는지 알 수 있습니다."
+)
 
 
+# --------------------------------------------------
+# 앞으로 추가할 그래프 영역
+# --------------------------------------------------
 st.divider()
 
 st.header("4. 다음 그래프")
 st.info("앞으로 새로운 시간 관련 그래프가 이곳에 추가됩니다.")
 
+
+st.divider()
+
+st.header("5. 다음 그래프")
+st.info("앞으로 새로운 시간 관련 그래프가 이곳에 추가됩니다.")
