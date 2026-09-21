@@ -1,4 +1,4 @@
-```python
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -184,4 +184,4 @@ st.divider()
 
 st.header("4. 다음 그래프")
 st.info("앞으로 새로운 시간 관련 그래프가 이곳에 추가됩니다.")
-```
+
